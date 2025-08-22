@@ -60,6 +60,18 @@ remove password and refresh token field from response
 check for user creation 
 return response
 
+steps for /login: POST --  user login 
+
+req body - take data from user
+check validation username or email
+find the user -- user exist or not in database
+password check of user
+generate access and refresh token and sends to user
+send these tokens to cookie
+return response
+
+
+
 
 
 
