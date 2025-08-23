@@ -227,4 +227,111 @@ const refereshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, logoutUser, refereshAccessToken };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  try {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+  
+    if (!(newPassword === confirmPassword)) {
+      throw new ApiError(400, "new password and confirm should be same");
+    }
+  
+    const user = await User.findById(req.user?._id);
+  
+    const isPasswordCorrect = await user.comparePassword(oldPassword);
+  
+    if (!isPasswordCorrect) {
+      throw new ApiError(401, "invalid password");
+    }
+  
+    user.password = newPassword;
+  
+    await user.save({ validateBeforeSave: false });
+  
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "password changed successfully"));
+  } catch (error) {
+    throw new ApiError(500, error?.message || "Internal server error");
+    
+  }
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  try {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, req.user, "user fetched successfully"));
+  } catch (error) {
+    throw new ApiError(500, error?.message || "Internal server error");
+  }
+});
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  try {
+    const { username, email } = req.body;
+
+    if (!username || !email) {
+      throw new ApiError(400, "All fields are required");
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set: {
+          username,
+          email,
+        },
+      },
+      { new: true }
+    ).select("-password");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, "Account details updated successfully"));
+  } catch (error) {
+    throw new ApiError(500, error?.message || "Internal server error");
+  }
+});
+
+const updateUserAvatar= asyncHandler(async(req,res)=>{
+  try {
+    const avatarLocalPath= req.file?.path
+  
+    if(!avatarLocalPath){
+      throw new ApiError(400,"Avatar file is missing")
+    }
+  
+    const avatar= await uploadOnCloudinary(avatarLocalPath);
+  
+    if(!avatar.url){
+      throw new ApiError(400,"Error while uploading in cloudinary")
+    }
+  
+    const user= await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set:{
+          avatar:avatar.url
+        }
+      },
+      {new:true}
+    ).select("-password");
+  
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "Avatar updated successfully"));
+  } catch (error) {
+    throw new ApiError(500, error?.message || "Internal server error");
+  } 
+})
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refereshAccessToken,
+  getCurrentUser,
+  changeCurrentPassword,
+  updateAccountDetails,
+  updateUserAvatar
+};
