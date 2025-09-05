@@ -18,8 +18,8 @@ voting app functionality
 Routes:
 
 User authentication:
-  /signup: POST -- Create a new user account
-  /login   POST -- login to an existing account. [aadhar card number + password]
+  /signup: POST -- Create a new user account --done
+  /login   POST -- login to an existing account. [aadhar card number + password] --done
 
 Voting:
   /candidates: GET -- get the list of candidates
@@ -29,8 +29,8 @@ Vote counts:
   /vote/counts: GET-- get the list of candidates sorted by their vote count
 
 User Profile:
-  /profile: GET -- get the user  profile info
-  /profile/password : PUT -- change the user's password
+  /profile: GET -- get the user  profile info -- done
+  /profile/password : PUT -- change the user's password  --done
 
 Admin candidate management:
   /candidates: POST -- create a new candidate

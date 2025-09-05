@@ -89,20 +89,20 @@ const loginUser = asyncHandler(async (req, res) => {
   try {
     //take data from user
 
-    const { username, email, password } = req.body;
+    const { aadharCardNumber, email, password } = req.body;
 
-    console.log("data from req", email);
+    console.log("data from req", req.body);
 
     //check validation username or email
 
-    if (!(username || email)) {
+    if (!(aadharCardNumber || email)) {
       throw new ApiError(400, "username or email is required !!");
     }
 
     // find the user
 
     const user = await User.findOne({
-      $or: [{ username }, { email }],
+      $or: [{ aadharCardNumber }, { email }],
     });
 
     if (!user) {
