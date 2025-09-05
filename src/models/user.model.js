@@ -20,12 +20,20 @@ const userSchema = new Schema(
       unique: true,
       trim: true,
     },
-    avatar: {
-      type: String, // cloudinary url
-      // required: true,
+    age:{
+      type: Number,
+      required: true
     },
-    coverImage: {
-      type: String, // cloudinary url
+    mobile:{
+      type:String
+    },
+    address:{
+      type:String,
+    },
+    aadharCardNumber:{
+      type:Number,
+      required:true,
+      unique:true,
     },
     watchHistory: [
       {
@@ -36,6 +44,15 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
+    },
+    role:{
+      type:String,
+      enum:['voter','admin'],
+      default:'voter'
+    },
+    isVoted:{
+      type:Boolean,
+      default:false
     },
     refreshToken: {
       type: String,

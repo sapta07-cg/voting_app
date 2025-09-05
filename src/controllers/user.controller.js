@@ -28,17 +28,29 @@ const registerUser = asyncHandler(async (req, res) => {
   try {
     //get user details from frontend
 
-    const { username, email, password } = req.body;
+    console.log("request from body",req.body);
+
+    const { username, email, password, age, address, aadharCardNumber } = req.body;
 
     // validation for all fields
 
-    if ([username, email, password].some((field) => field?.trim() === "")) {
+    const requiredFields = [username, email, password, address];
+
+    if (requiredFields.some((field) => field?.trim() === "")) {
       console.log("checking error");
       throw new ApiError(400, "All fields are required");
     }
 
+    if (!aadharCardNumber || !age){
+      throw new ApiError(400, "aadharCardNumber or age is required ")
+    }
+
+    if(age<18){
+      throw new ApiError(400,"only can register after 18");
+    }
+
     const existedUser = await User.findOne({
-      $or: [{ username }, { email }],
+      $or: [ { email }, {aadharCardNumber}],
     });
 
     // check if user already exists
@@ -47,15 +59,12 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new ApiError(409, "User with email or username already exists");
     }
 
-    // const avatarLocalPath = req.files?.avatar[0]?.path;
-
-    const avatar = await uploadOnCloudinary(req.files?.avatar[0]?.path);
-
     const userDetails = await User.create({
       username,
       email,
       password,
-      avatar: avatar.url,
+      age,
+      aadharCardNumber
     });
 
     // remove password and refresh token field
