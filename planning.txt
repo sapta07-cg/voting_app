@@ -34,7 +34,7 @@ User Profile:
 
 Admin candidate management:
   /candidates: POST -- create a new candidate --done
-  /candidates/:candidateId: PUT -- update an existing candidate
+  /candidates/:candidateId: PUT -- update an existing candidate --done
   /candidates/:candidateId: DELETE -- delete a candidate from the list --done
 
 

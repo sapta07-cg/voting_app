@@ -3,9 +3,27 @@ import { ApiError } from "../utils/ApiError.js";
 import { Candidate } from "../models/candidate.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
+import { User } from "../models/user.model.js";
+
+const checkAdminRole= async(userId)=>{
+  try {
+    const user= await User.findById(userId);
+
+    if(user.role==="admin"){
+      return true
+    }
+  } catch (error) {
+    return false;
+  }
+
+}
 
 const registerCandidate = asyncHandler(async (req, res) => {
   try {
+
+    if(!checkAdminRole(req.user?._id)){
+      return res.status(403).json(new ApiError(403, {}, "user does not have admin role"))
+    }
     console.log("request from body", req.body);
 
     const { name, party, age } = req.body;
@@ -128,7 +146,7 @@ const updateCandidate = asyncHandler(async (req, res) => {
 
 const getAllCandidate = asyncHandler(async (req, res) => {
   try {
-    const response = await Candidate.find();
+    const response = await Candidate.find({},{name:1,party:1,_id:0});
 
     console.log("response from server", response);
 
@@ -151,7 +169,6 @@ const getAllCandidate = asyncHandler(async (req, res) => {
 
 const getCandidateById = asyncHandler(async (req, res) => {
   try {
-
     const { candidateId } = req.params;
 
     console.log("cadidate id", candidateId);
@@ -160,9 +177,7 @@ const getCandidateById = asyncHandler(async (req, res) => {
     console.log("response from server", response);
 
     if (!response) {
-      return res
-        .status(404)
-        .json(new ApiError(404, "Candidate not found"));
+      return res.status(404).json(new ApiError(404, "Candidate not found"));
     }
 
     return res
@@ -176,4 +191,83 @@ const getCandidateById = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerCandidate, deleteCandidate, updateCandidate, getAllCandidate, getCandidateById };
+//vote controllers
+
+const castVote = asyncHandler(async (req, res) => {
+  try {
+    const { candidateId } = req.params;
+
+    console.log("cadidate id", candidateId);
+
+    const candidate = await Candidate.findById(candidateId);
+
+    if (!candidate) {
+      return res.status(404).json(new ApiError(404, "Candidate not found"));
+    }
+
+    const user = await User.findById(req.user?._id);
+
+    if (!user) {
+      return res.status(404).json(new ApiError(404, "user not found"));
+    }
+
+    if (user.role == "admin") {
+      return res.status(403).json(new ApiError(403, "admin is not allowed"));
+    }
+
+    if (user.isVoted) {
+      return res.status(400).json(new ApiError(403, {},"you have already voted"));
+    }
+
+    // Update the Candidate document to record the vote
+
+    candidate.votes.push({ user: req.user._id });
+    candidate.voteCount++;
+
+    await candidate.save();
+
+    // update the user document
+
+    user.isVoted = true;
+    await user.save();
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "user voted successfully"))
+  } catch (error) {
+     console.error("Save error:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+const countVote= asyncHandler(async(req,res)=>{
+  try {
+    // Find all candidates and sort them by voteCount in descending order
+    const candidateData= await Candidate.find().sort({voteCount:"desc"})
+
+    const finalData= candidateData.map((data)=>{
+      return{
+        party: data.party,
+        count:data.voteCount
+      }
+    })
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200,finalData,"Data fetched successfully"))
+  } catch (error) {
+    console.error("Save error:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+
+})
+
+export {
+  registerCandidate,
+  deleteCandidate,
+  updateCandidate,
+  getAllCandidate,
+  getCandidateById,
+  castVote,
+  countVote
+};
