@@ -80,4 +80,100 @@ const deleteCandidate = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerCandidate, deleteCandidate };
+const updateCandidate = asyncHandler(async (req, res) => {
+  try {
+    const { candidateId } = req.params;
+
+    console.log("cadidate id", candidateId);
+
+    const { name, party, age } = req.body;
+
+    if (!name || !party || !age) {
+      return res
+        .status(400)
+        .json(new ApiError(400, {}, "All fields are required"));
+    }
+
+    const candidate = await Candidate.findByIdAndUpdate(
+      candidateId,
+      {
+        $set: {
+          name,
+          party,
+          age,
+        },
+      },
+      { new: true },
+      { runValidators: true }
+    );
+
+    if (!candidate) {
+      return res.status(404).json(new ApiError(404, "Candidate not found"));
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          candidate,
+          "Candidate details updated successfully"
+        )
+      );
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+const getAllCandidate = asyncHandler(async (req, res) => {
+  try {
+    const response = await Candidate.find();
+
+    console.log("response from server", response);
+
+    if (!response) {
+      return res
+        .status(500)
+        .json(new ApiError(500, "Something wrong while fetching data"));
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, response, "Candidate details fetched successfully")
+      );
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+const getCandidateById = asyncHandler(async (req, res) => {
+  try {
+
+    const { candidateId } = req.params;
+
+    console.log("cadidate id", candidateId);
+    const response = await Candidate.findById(candidateId);
+
+    console.log("response from server", response);
+
+    if (!response) {
+      return res
+        .status(404)
+        .json(new ApiError(404, "Candidate not found"));
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, response, "Candidate details fetched successfully")
+      );
+  } catch (error) {
+    console.error("Save error:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+export { registerCandidate, deleteCandidate, updateCandidate, getAllCandidate, getCandidateById };
