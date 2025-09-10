@@ -33,9 +33,9 @@ User Profile:
   /profile/password : PUT -- change the user's password  --done
 
 Admin candidate management:
-  /candidates: POST -- create a new candidate
+  /candidates: POST -- create a new candidate --done
   /candidates/:candidateId: PUT -- update an existing candidate
-  /candidates/:candidateId: DELETE -- delete a candidate from the list
+  /candidates/:candidateId: DELETE -- delete a candidate from the list --done
 
 
 Models
